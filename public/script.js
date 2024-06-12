@@ -7,29 +7,31 @@ var peer = new Peer(undefined, {
 });
 
 const user = prompt("Enter your name");
-const myVideo= document.createElement("video");
-myVideo.muted = true;
+const myVideo= document.createElement("video");  //create video element
+myVideo.muted = true;  // mute by default
 
-let myStream; 
+let myStream;  //contains audio & video stream
 
+//get audio and video and store it in our variables myStream
 navigator.mediaDevices
     .getUserMedia({
         audio: true,
         video: true,
     })
     .then((stream) => {
-        myStream = stream;
-        addVideoStream(myVideo, stream);
+        myStream = stream;  //gets stream and stores
+        addVideoStream(myVideo, stream);  //display everyones stream
     })
 
 
 function addVideoStream(video, stream) {
-    video.srcObject = stream;
-    video.addEventListener("loadedmetadata", () => {
-        video.play()
-        $("#video_grid").append(video)
-    });
-};    
+        video.srcObject = stream;
+        video.addEventListener("loadedmetadata", () => {
+            video.play();
+            $("#video_grid").append(video)
+        });
+    };
+    
 $(function () {
     $("#show_chat").click(function () {
         $(".left-window").css("display", "none")
