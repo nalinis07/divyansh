@@ -7,31 +7,52 @@ var peer = new Peer(undefined, {
 });
 
 const user = prompt("Enter your name");
-const myVideo= document.createElement("video");  //create video element
-myVideo.muted = true;  // mute by default
 
-let myStream;  //contains audio & video stream
+const myVideo = document.createElement("video");
+myVideo.muted = true;
 
-//get audio and video and store it in our variables myStream
+let myStream;
+
 navigator.mediaDevices
     .getUserMedia({
         audio: true,
         video: true,
-    })
+    })      
     .then((stream) => {
-        myStream = stream;  //gets stream and stores
-        addVideoStream(myVideo, stream);  //display everyones stream
+        myStream = stream;
+        addVideoStream(myVideo, stream);
+
+        //class 220 - handling 'user connected ' event  - 
+        socket.on("user-connected", (userId) => {
+            connectToNewUser(userId, stream);
+        });
+        //class 220 - handling a new joinee
+        peer.on("call", (call) => {
+            call.answer(stream);
+            const video = document.createElement("video");
+            call.on("stream", (userVideoStream) => {
+                addVideoStream(video, userVideoStream);
+            });
+        });
     })
 
+ //class 220    
+function connectToNewUser(userId, stream) {
+    const call = peer.call(userId, stream);  //call to peers with our id and stream
+    const video = document.createElement("video");  //ccreate video element to stream others video
+    call.on("stream", (userVideoStream) => {  //listen abd stream others video
+        addVideoStream(video, userVideoStream);
+    });
+};
 
 function addVideoStream(video, stream) {
-        video.srcObject = stream;
-        video.addEventListener("loadedmetadata", () => {
-            video.play();
-            $("#video_grid").append(video)
-        });
-    };
-    
+    video.srcObject = stream;
+    video.addEventListener("loadedmetadata", () => {
+        video.play();
+        $("#video_grid").append(video)
+    });
+};
+
 $(function () {
     $("#show_chat").click(function () {
         $(".left-window").css("display", "none")
@@ -57,6 +78,38 @@ $(function () {
             $("#chat_message").val("");
         }
     })
+
+    //class 220
+    $("#mute_button").click(function () {
+        const enabled = myStream.getAudioTracks()[0].enabled;
+        if (enabled) {
+            myStream.getAudioTracks()[0].enabled = false;
+            html = `<i class="fas fa-microphone-slash"></i>`;
+            $("#mute_button").toggleClass("background_red");
+            $("#mute_button").html(html)
+        } else {
+            myStream.getAudioTracks()[0].enabled = true;
+            html = `<i class="fas fa-microphone"></i>`;
+            $("#mute_button").toggleClass("background_red");
+            $("#mute_button").html(html)
+        }
+    })
+    //class 220
+    $("#stop_video").click(function () {
+        const enabled = myStream.getVideoTracks()[0].enabled;
+        if (enabled) {
+            myStream.getVideoTracks()[0].enabled = false;
+            html = `<i class="fas fa-video-slash"></i>`;
+            $("#stop_video").toggleClass("background_red");
+            $("#stop_video").html(html)
+        } else {
+            myStream.getVideoTracks()[0].enabled = true;
+            html = `<i class="fas fa-video"></i>`;
+            $("#stop_video").toggleClass("background_red");
+            $("#stop_video").html(html)
+        }
+    })
+
 
 })
 
