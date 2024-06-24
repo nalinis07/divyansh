@@ -17,16 +17,15 @@ navigator.mediaDevices
     .getUserMedia({
         audio: true,
         video: true,
-    })      
+    })
     .then((stream) => {
         myStream = stream;
         addVideoStream(myVideo, stream);
 
-        //class 220 - handling 'user connected ' event  - 
         socket.on("user-connected", (userId) => {
             connectToNewUser(userId, stream);
         });
-        //class 220 - handling a new joinee
+
         peer.on("call", (call) => {
             call.answer(stream);
             const video = document.createElement("video");
@@ -36,11 +35,10 @@ navigator.mediaDevices
         });
     })
 
- //class 220    
 function connectToNewUser(userId, stream) {
-    const call = peer.call(userId, stream);  //call to peers with our id and stream
-    const video = document.createElement("video");  //ccreate video element to stream others video
-    call.on("stream", (userVideoStream) => {  //listen abd stream others video
+    const call = peer.call(userId, stream);
+    const video = document.createElement("video");
+    call.on("stream", (userVideoStream) => {
         addVideoStream(video, userVideoStream);
     });
 };
@@ -79,7 +77,6 @@ $(function () {
         }
     })
 
-    //class 220
     $("#mute_button").click(function () {
         const enabled = myStream.getAudioTracks()[0].enabled;
         if (enabled) {
@@ -94,7 +91,7 @@ $(function () {
             $("#mute_button").html(html)
         }
     })
-    //class 220
+
     $("#stop_video").click(function () {
         const enabled = myStream.getVideoTracks()[0].enabled;
         if (enabled) {
@@ -110,6 +107,27 @@ $(function () {
         }
     })
 
+    $("invite_button").click(function () {
+        const to = prompt("Enter the email address")
+        let data = {
+            url: window.location.href,
+            to: to
+        }
+        console.log ("url , to :",data.url, data.to)
+        $.ajax({
+            url: "/send-mail",
+            type: "post",
+            data: JSON.stringify(data),
+            dataType: 'json',
+            contentType: 'application/json',
+            success: function (result) {
+                alert("Invite sent!")
+            },
+            error: function (result) {
+                console.log(result.responseJSON)
+            }
+        })
+    })
 
 })
 
